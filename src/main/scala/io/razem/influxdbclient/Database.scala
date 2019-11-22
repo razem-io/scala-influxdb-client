@@ -2,7 +2,9 @@ package io.razem.influxdbclient
 
 import io.razem.influxdbclient.Parameter.Consistency.Consistency
 import io.razem.influxdbclient.Parameter.Precision.Precision
+import io.razem.influxdbclient.implicits.anyToPoint
 
+import scala.annotation.implicitNotFound
 import scala.concurrent.{ExecutionContext, Future}
 
 class Database protected[influxdbclient]
@@ -12,12 +14,16 @@ class Database protected[influxdbclient]
   with RetentionPolicyManagement
   with DatabaseManagement
 {
-  def write(point: Point,
+
+  @implicitNotFound(
+    "Cannot find implicit ToPoint instance for type ${A}. Ensure that instance is implemented and reachable."
+  )
+  def write[A](metric: A,
             precision: Precision = null,
             consistency: Consistency = null,
-            retentionPolicy: String = null): Future[Boolean] =
+            retentionPolicy: String = null)(implicit toPoint: ToPoint[A]): Future[Boolean] =
   {
-    executeWrite(point.serialize(), precision, consistency, retentionPolicy)
+    executeWrite(metric.serialize(), precision, consistency, retentionPolicy)
   }
 
   def bulkWrite(points: Seq[Point],
