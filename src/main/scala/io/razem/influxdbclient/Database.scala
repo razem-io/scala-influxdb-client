@@ -4,7 +4,6 @@ import io.razem.influxdbclient.Parameter.Consistency.Consistency
 import io.razem.influxdbclient.Parameter.Precision.Precision
 import io.razem.influxdbclient.implicits.anyToPoint
 
-import scala.annotation.implicitNotFound
 import scala.concurrent.{ExecutionContext, Future}
 
 class Database protected[influxdbclient]
