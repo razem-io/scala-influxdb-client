@@ -15,9 +15,6 @@ class Database protected[influxdbclient]
   with DatabaseManagement
 {
 
-  @implicitNotFound(
-    "Cannot find implicit ToPoint instance for type ${A}. Ensure that instance is implemented and reachable."
-  )
   def write[A](metric: A,
             precision: Precision = null,
             consistency: Consistency = null,

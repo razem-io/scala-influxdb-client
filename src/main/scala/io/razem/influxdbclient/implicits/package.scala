@@ -1,7 +1,5 @@
 package io.razem.influxdbclient
 
-import scala.annotation.implicitNotFound
-
 package object implicits {
 
   implicit class ToPointSyntax[A](val value: A) extends AnyVal {
@@ -23,9 +21,6 @@ package object implicits {
      *   }
      * }}}
      */
-    @implicitNotFound(
-      "Cannot find implicit ToPoint instance for type ${A}. Ensure that instance is implemented and reachable."
-    )
     def toPoint(implicit toPoint: ToPoint[A]): Point = toPoint.convert(value)
 
   }
@@ -50,9 +45,6 @@ package object implicits {
    *   }
    * }}}
    */
-  @implicitNotFound(
-    "Cannot find implicit ToPoint instance for type ${A}. Ensure that instance is implemented and reachable."
-  )
   implicit def anyToPoint[A](value: A)(implicit toPoint: ToPoint[A]): Point =
     toPoint.convert(value)
 
