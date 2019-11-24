@@ -2,29 +2,28 @@ package io.razem.influxdbclient
 
 import spray.json._
 
-class Record protected[influxdbclient]
-(namesIndex: Map[String, Int], values: List[Any]) {
+class Record protected[influxdbclient] (namesIndex: Map[String, Int], values: List[Any]) {
   def apply(position: Int) = values(position)
-  def apply(name: String) = values(namesIndex(name))
+  def apply(name:     String) = values(namesIndex(name))
   def allValues: List[Any] = values
 }
 
-class TagSet protected[influxdbclient]
-(tagsIndex: Map[String, Int], values: List[Any]) {
+class TagSet protected[influxdbclient] (tagsIndex: Map[String, Int], values: List[Any]) {
   def apply(position: Int) = values(position)
-  def apply(name: String) = values(tagsIndex(name))
+  def apply(name:     String) = values(tagsIndex(name))
   def size: Int = tagsIndex.size
 }
 
-class Series protected[influxdbclient]
-(val name: String, val columns: List[String], val records: List[Record], val tags: TagSet) {
+class Series protected[influxdbclient] (val name:    String,
+                                        val columns: List[String],
+                                        val records: List[Record],
+                                        val tags:    TagSet) {
   def points(column: String): List[Any] = records.map(_(column))
   def points(column: Int): List[Any] = records.map(_(column))
   def allValues: List[List[Any]] = records.map(_.allValues)
 }
 
-protected[influxdbclient]
-object QueryResult {
+protected[influxdbclient] object QueryResult {
 
   def fromJson(data: String): QueryResult = {
     val resultsArray = parseJson(data)
@@ -59,42 +58,50 @@ object QueryResult {
 
   def constructSeries(value: JsValue): Series = {
     val fields = value.asInstanceOf[JsObject].fields
-    val seriesName = if (fields.contains("name"))
-      fields("name").asInstanceOf[JsString].value
-    else
-      ""
+    val seriesName =
+      if (fields.contains("name"))
+        fields("name").asInstanceOf[JsString].value
+      else
+        ""
 
-    val columns = fields("columns").asInstanceOf[JsArray].elements.map {
-      case JsString(column) => column
-      case t => throw new MalformedResponseException("Found invalid type " + t.toString())
-    }.toList
+    val columns = fields("columns")
+      .asInstanceOf[JsArray]
+      .elements
+      .map {
+        case JsString(column) => column
+        case t                => throw new MalformedResponseException("Found invalid type " + t.toString())
+      }
+      .toList
 
-    val tagsIndex = if (fields.contains("tags"))
-      fields("tags").asJsObject.fields.keySet.zipWithIndex.toMap
-    else
-      Map.empty[String, Int]
+    val tagsIndex =
+      if (fields.contains("tags"))
+        fields("tags").asJsObject.fields.keySet.zipWithIndex.toMap
+      else
+        Map.empty[String, Int]
 
-    val tags = if (fields.contains("tags"))
-      constructTagSet(tagsIndex, fields("tags"))
-    else
-      constructTagSet(Map.empty[String, Int], JsObject.empty)
+    val tags =
+      if (fields.contains("tags"))
+        constructTagSet(tagsIndex, fields("tags"))
+      else
+        constructTagSet(Map.empty[String, Int], JsObject.empty)
 
     val namesIndex = columns.zipWithIndex.toMap
-    val records = if (fields.contains("values"))
-      fields("values").asInstanceOf[JsArray].elements.map(constructRecord(namesIndex, _)).toList
-    else
-      List()
+    val records =
+      if (fields.contains("values"))
+        fields("values").asInstanceOf[JsArray].elements.map(constructRecord(namesIndex, _)).toList
+      else
+        List()
     new Series(seriesName, columns, records, tags)
   }
 
   def constructRecord(namesIndex: Map[String, Int], value: JsValue): Record = {
     val valueArray = value.asInstanceOf[JsArray]
     val values = valueArray.elements.map {
-      case JsNumber(num) => num
-      case JsString(str) => str
+      case JsNumber(num)      => num
+      case JsString(str)      => str
       case JsBoolean(boolean) => boolean
-      case JsNull => null
-      case t => throw new MalformedResponseException("Found invalid type " + t.toString())
+      case JsNull             => null
+      case t                  => throw new MalformedResponseException("Found invalid type " + t.toString())
     }.toList
 
     new Record(namesIndex, values)
@@ -102,10 +109,10 @@ object QueryResult {
 
   def constructTagSet(tagsIndex: Map[String, Int], value: JsValue): TagSet = {
     val values = value.asJsObject.fields.map {
-      case (key: String, JsNumber(num)) => num
-      case (key: String, JsString(str)) => str
+      case (key: String, JsNumber(num))      => num
+      case (key: String, JsString(str))      => str
       case (key: String, JsBoolean(boolean)) => boolean
-      case t => throw new MalformedResponseException("Found invalid type " + t.toString())
+      case t                                 => throw new MalformedResponseException("Found invalid type " + t.toString())
     }.toList
 
     new TagSet(tagsIndex, values)
@@ -113,12 +120,12 @@ object QueryResult {
 }
 
 abstract class QueryResultException(message: String = null, throwable: Throwable = null)
-  extends Exception(message, throwable)
+    extends Exception(message, throwable)
 
 class MalformedResponseException(message: String = null, throwable: Throwable = null)
-  extends QueryResultException(message, throwable)
+    extends QueryResultException(message, throwable)
 
 class ErrorResponseException(message: String = null, throwable: Throwable = null)
-  extends QueryResultException(message, throwable)
+    extends QueryResultException(message, throwable)
 
 class QueryResult protected[influxdbclient] (val series: List[Series] = List()) {}

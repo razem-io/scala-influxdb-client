@@ -30,11 +30,10 @@ protected[influxdbclient] trait UserManagement { self: InfluxDB =>
   def makeClusterAdmin(username: String): Future[QueryResult] =
     exec("GRANT ALL PRIVILEGES TO %s".format(username))
 
-  def userIsClusterAdmin(username: String): Future[Boolean] = {
-    showUsers().map(result =>
-      result.series.head.records.exists(record =>
-        record("user") == username && record("admin") == true))
-  }
+  def userIsClusterAdmin(username: String): Future[Boolean] =
+    showUsers().map(
+      result => result.series.head.records.exists(record => record("user") == username && record("admin") == true)
+    )
 
   protected[influxdbclient] def escapePassword(password: String): String =
     password.replaceAll("(['\n])", "\\\\$1")

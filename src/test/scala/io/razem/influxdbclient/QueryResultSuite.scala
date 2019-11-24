@@ -5,7 +5,8 @@ import spray.json.JsonParser
 class QueryResultSuite extends CustomTestSuite {
 
   test("Construct result") {
-    val data = """{"results":[{"series":[{"name":"databases","columns":["name"],"values":[["_internal"]],"tags":{"tag": "value"}}]}]}"""
+    val data =
+      """{"results":[{"series":[{"name":"databases","columns":["name"],"values":[["_internal"]],"tags":{"tag": "value"}}]}]}"""
     val queryResult = QueryResult.fromJson(data)
 
     assert(queryResult.series.length == 1)
@@ -29,7 +30,7 @@ class QueryResultSuite extends CustomTestSuite {
 
   test("Constructing a record with unsupported types throws a MalformedResponseException") {
     try {
-      val data = JsonParser( """[{}, "second value"]""")
+      val data = JsonParser("""[{}, "second value"]""")
       val record = QueryResult.constructRecord(Map("first_metric" -> 0, "second_metric" -> 1), data)
       fail("Exception not thrown")
     } catch {
@@ -38,7 +39,9 @@ class QueryResultSuite extends CustomTestSuite {
   }
 
   test("Construct series") {
-    val data = JsonParser("""{"name":"test_series","columns":["column1", "column2", "column3"],"values":[["value1", 2, true]],"tags":{"tag": "value"}}""")
+    val data = JsonParser(
+      """{"name":"test_series","columns":["column1", "column2", "column3"],"values":[["value1", 2, true]],"tags":{"tag": "value"}}"""
+    )
     val series = QueryResult.constructSeries(data)
 
     assert(series.name == "test_series")
@@ -54,7 +57,9 @@ class QueryResultSuite extends CustomTestSuite {
   }
 
   test("Construct series without a name") {
-    val data = JsonParser("""{"columns":["column1", "column2", "column3"],"values":[["value1", 2, true]],"tags":{"tag": "value"}}""")
+    val data = JsonParser(
+      """{"columns":["column1", "column2", "column3"],"values":[["value1", 2, true]],"tags":{"tag": "value"}}"""
+    )
     val series = QueryResult.constructSeries(data)
 
     assert(series.name == "")
@@ -84,7 +89,8 @@ class QueryResultSuite extends CustomTestSuite {
 
   test("Constructing a series with unsupported tag types throws a MalformedResponseException") {
     try {
-      val data = JsonParser("""{"name":"test_series","columns":["columns1"],"values":[["value1"]],"tags": {"tag": []}}""")
+      val data =
+        JsonParser("""{"name":"test_series","columns":["columns1"],"values":[["value1"]],"tags": {"tag": []}}""")
       val series = QueryResult.constructSeries(data)
       fail("Exception not thrown")
     } catch {
@@ -104,7 +110,9 @@ class QueryResultSuite extends CustomTestSuite {
   }
 
   test("Tags can be accessed by name and position") {
-    val data = JsonParser("""{"columns":["column1", "column2", "column3"],"values":[["value1", 2, true]],"tags":{"tag": "value"}}""")
+    val data = JsonParser(
+      """{"columns":["column1", "column2", "column3"],"values":[["value1", 2, true]],"tags":{"tag": "value"}}"""
+    )
     val series = QueryResult.constructSeries(data)
 
     assert(series.tags("tag") == "value")
@@ -112,7 +120,9 @@ class QueryResultSuite extends CustomTestSuite {
   }
 
   test("Tags can be defined as strings, numbers or booleans") {
-    val data = JsonParser("""{"columns":["column1", "column2", "column3"],"values":[["value1", 2, true]],"tags":{"tag1": "value", "tag2": 10, "tag3": true}}""")
+    val data = JsonParser(
+      """{"columns":["column1", "column2", "column3"],"values":[["value1", 2, true]],"tags":{"tag1": "value", "tag2": 10, "tag3": true}}"""
+    )
     val series = QueryResult.constructSeries(data)
 
     assert(series.tags("tag1") == "value")
@@ -140,7 +150,8 @@ class QueryResultSuite extends CustomTestSuite {
   }
 
   test("Multiple results are parsed correctly") {
-    val data = """{"results":[{"series":[{"name":"databases","columns":["name"],"values":[["_internal"]],"tags":{"tag": "value"}}]},{"series":[{"name":"databases_2","columns":["name"],"values":[["_internal"]],"tags":{"tag": "value"}}]}]}"""
+    val data =
+      """{"results":[{"series":[{"name":"databases","columns":["name"],"values":[["_internal"]],"tags":{"tag": "value"}}]},{"series":[{"name":"databases_2","columns":["name"],"values":[["_internal"]],"tags":{"tag": "value"}}]}]}"""
     val queryResults = QueryResult.fromJsonMulti(data)
     assert(queryResults.length == 2)
     assert(queryResults(0).series.head.name == "databases")

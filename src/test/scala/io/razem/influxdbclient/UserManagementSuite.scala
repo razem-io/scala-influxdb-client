@@ -65,7 +65,7 @@ class UserManagementSuite extends CustomTestSuite {
     }
   }
 
-  def testIsClusterAdmin() = {
+  def testIsClusterAdmin() =
     try {
       assert(await(influxDb.userIsClusterAdmin(username)))
     } catch {
@@ -73,5 +73,4 @@ class UserManagementSuite extends CustomTestSuite {
         await(influxDb.dropUser(username))
         throw e
     }
-  }
 }

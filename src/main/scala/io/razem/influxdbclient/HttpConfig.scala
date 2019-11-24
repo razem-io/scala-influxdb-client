@@ -22,4 +22,3 @@ class HttpConfig {
 
   protected[influxdbclient] def build(): DefaultAsyncHttpClientConfig = builder.build()
 }
-

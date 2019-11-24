@@ -1,8 +1,8 @@
 package io.razem.influxdbclient
 
-import io.razem.influxdbclient.Mocks.{ExceptionThrowingHttpClient, ErrorReturningHttpClient}
+import io.razem.influxdbclient.Mocks.{ErrorReturningHttpClient, ExceptionThrowingHttpClient}
 import io.razem.influxdbclient.Parameter.{Consistency, Precision}
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfter}
+import org.scalatest.BeforeAndAfter
 
 class DatabaseSuite extends CustomTestSuite with BeforeAndAfter {
 
@@ -43,7 +43,7 @@ class DatabaseSuite extends CustomTestSuite with BeforeAndAfter {
   }
 
   test("Multiple points can be written and read") {
-    val time = 1444760421000l
+    val time = 1444760421000L
     val points = List(
       Point("test_measurement", time).addField("value", 123),
       Point("test_measurement", time + 1).addField("value", 123),
@@ -61,19 +61,15 @@ class DatabaseSuite extends CustomTestSuite with BeforeAndAfter {
   }
 
   test("A point can be written and read with a precision parameter") {
-    val time = 1444760421270l
-    await(
-      database.write(Point("test_measurement", time).addField("value", 123),
-                     precision = Precision.MILLISECONDS))
+    val time = 1444760421270L
+    await(database.write(Point("test_measurement", time).addField("value", 123), precision = Precision.MILLISECONDS))
     val result = await(database.query("SELECT * FROM test_measurement", Precision.MILLISECONDS))
 
     assert(result.series.head.records.head("time") == time)
   }
 
   test("A point can be written with a consistency parameter") {
-    await(
-      database.write(Point("test_measurement").addField("value", 123),
-        consistency = Consistency.ALL))
+    await(database.write(Point("test_measurement").addField("value", 123), consistency = Consistency.ALL))
     val result = await(database.query("SELECT * FROM test_measurement"))
     assert(result.series.length == 1)
   }
@@ -82,18 +78,14 @@ class DatabaseSuite extends CustomTestSuite with BeforeAndAfter {
     val retentionPolicyName = "custom_retention_policy"
     val measurementName = "test_measurement"
     await(database.createRetentionPolicy(retentionPolicyName, "1w", 1, default = false))
-    await(
-      database.write(Point(measurementName).addField("value", 123),
-        retentionPolicy = retentionPolicyName))
+    await(database.write(Point(measurementName).addField("value", 123), retentionPolicy = retentionPolicyName))
     val result = await(database.query("SELECT * FROM %s.%s".format(retentionPolicyName, measurementName)))
     assert(result.series.length == 1)
   }
 
   test("Writing to a non-existent retention policy throws an error") {
     try {
-      await(
-        database.write(Point("test_measurement").addField("value", 123),
-          retentionPolicy = "fake_retention_policy"))
+      await(database.write(Point("test_measurement").addField("value", 123), retentionPolicy = "fake_retention_policy"))
       fail("Write using non-existent retention policy did not fail")
     } catch {
       case e: WriteException => // expected
@@ -141,4 +133,3 @@ class DatabaseSuite extends CustomTestSuite with BeforeAndAfter {
   }
 
 }
-

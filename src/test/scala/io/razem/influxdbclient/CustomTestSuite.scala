@@ -15,7 +15,8 @@ class CustomTestSuite extends FunSuite with BeforeAndAfterAll with ForAllTestCon
   val databaseUsername = "influx_user"
   val databasePassword = "influx_password"
 
-  override val container = GenericContainer("influxdb:1.5",
+  override val container = GenericContainer(
+    "influxdb:1.5",
     exposedPorts = Seq(influxDbInternalPort),
     waitStrategy = Wait.forHttp("/ping").forStatusCode(204),
     env = Map(
@@ -31,7 +32,9 @@ class CustomTestSuite extends FunSuite with BeforeAndAfterAll with ForAllTestCon
     )
   )
 
-  container.container.withCreateContainerCmdModifier(toJavaConsumer(cmd => cmd.withExposedPorts(ExposedPort.udp(influxDbInternalPort))))
+  container.container.withCreateContainerCmdModifier(
+    toJavaConsumer(cmd => cmd.withExposedPorts(ExposedPort.udp(influxDbInternalPort)))
+  )
 
   val waitDuration: FiniteDuration = 2.seconds
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -43,36 +46,35 @@ class CustomTestSuite extends FunSuite with BeforeAndAfterAll with ForAllTestCon
 
   def await[T](f: Awaitable[T], duration: Duration = waitDuration): T = Await.result(f, duration)
 
-  def waitForInternalDatabase(): Unit = {
-    while(Await.result(influxDb.showDatabases().map(_.isEmpty), 10.seconds)) {
+  def waitForInternalDatabase(): Unit =
+    while (Await.result(influxDb.showDatabases().map(_.isEmpty), 10.seconds)) {
       Thread.sleep(100)
     }
-  }
 
   override protected def beforeAll(): Unit = {
     import collection.JavaConverters._
 
     influxDbContainerIpAddress = container.containerIpAddress
     influxDbContainerTcpPort = container.mappedPort(influxDbInternalPort)
-    influxDbContainerUdpPort = container.container.getContainerInfo.getNetworkSettings.getPorts.getBindings.asScala.get(ExposedPort.udp(influxDbInternalPort))
-      .flatMap(_.headOption.map(_.getHostPortSpec.toInt)).getOrElse(0)
+    influxDbContainerUdpPort = container.container.getContainerInfo.getNetworkSettings.getPorts.getBindings.asScala
+      .get(ExposedPort.udp(influxDbInternalPort))
+      .flatMap(_.headOption.map(_.getHostPortSpec.toInt))
+      .getOrElse(0)
 
-    influxDb = InfluxDB.connect(influxDbContainerIpAddress, influxDbContainerTcpPort, databaseUsername, databasePassword)
+    influxDb =
+      InfluxDB.connect(influxDbContainerIpAddress, influxDbContainerTcpPort, databaseUsername, databasePassword)
 
     super.beforeAll()
   }
 
-  override def afterAll: Unit = {
+  override def afterAll: Unit =
     influxDb.close()
-  }
 
   // workaround for scala 2.11
   // can be removed as soon support for 2.11 gets dropped
-  def toJavaConsumer[T](consumer: (T) => Unit): Consumer[T] ={
+  def toJavaConsumer[T](consumer: (T) => Unit): Consumer[T] =
     new Consumer[T] {
-      override def accept(t: T): Unit = {
+      override def accept(t: T): Unit =
         consumer(t)
-      }
     }
-  }
 }

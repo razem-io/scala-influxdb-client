@@ -4,8 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
-
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfter}
+import org.scalatest.BeforeAndAfter
 
 class HttpClientSuite extends CustomTestSuite with BeforeAndAfter {
 
@@ -50,11 +49,14 @@ class HttpClientSuite extends CustomTestSuite with BeforeAndAfter {
 
   test("Error responses are handled correctly") {
     val url = "/query"
-    stubFor(get(urlEqualTo(url))
-      .willReturn(
-        aResponse()
-          .withStatus(500)
-          .withBody("")))
+    stubFor(
+      get(urlEqualTo(url))
+        .willReturn(
+          aResponse()
+            .withStatus(500)
+            .withBody("")
+        )
+    )
 
     val client = new HttpClient(host, port)
     try {
@@ -84,12 +86,15 @@ class HttpClientSuite extends CustomTestSuite with BeforeAndAfter {
 
   test("Future fails if request takes too long") {
     val url = "/query"
-    stubFor(get(urlEqualTo(url))
-      .willReturn(
-        aResponse()
-          .withFixedDelay(200)
-          .withStatus(200)
-          .withBody("a")))
+    stubFor(
+      get(urlEqualTo(url))
+        .willReturn(
+          aResponse()
+            .withFixedDelay(200)
+            .withStatus(200)
+            .withBody("a")
+        )
+    )
 
     val config = new HttpConfig().setRequestTimeout(50)
     val client = new HttpClient(host, port, false, null, null, config)

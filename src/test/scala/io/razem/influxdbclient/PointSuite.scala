@@ -8,7 +8,7 @@ class PointSuite extends CustomTestSuite {
   }
 
   test("Complete points are serialized correctly") {
-    val point = Point("measurement", 1234567890l)
+    val point = Point("measurement", 1234567890L)
       .addTag("tag_key2", "tag_value2")
       .addTag("tag_key1", "tag_value1")
       .addField("field_key5", BigDecimal("51.98890310"))
@@ -17,8 +17,10 @@ class PointSuite extends CustomTestSuite {
       .addField("field_key2", 2)
       .addField("field_key1", "field_value1")
 
-    assert(point.serialize ==
-      "measurement,tag_key1=tag_value1,tag_key2=tag_value2 field_key1=\"field_value1\",field_key2=2i,field_key3=true,field_key4=12.34,field_key5=51.98890310 1234567890")
+    assert(
+      point.serialize ==
+        "measurement,tag_key1=tag_value1,tag_key2=tag_value2 field_key1=\"field_value1\",field_key2=2i,field_key3=true,field_key4=12.34,field_key5=51.98890310 1234567890"
+    )
   }
 
   test("Tags cannot contain null values") {
@@ -75,7 +77,7 @@ class PointSuite extends CustomTestSuite {
   }
 
   test("Long fields are serialized correctly") {
-    assert(LongField("key", 12123l).serialize == "key=12123i")
+    assert(LongField("key", 12123L).serialize == "key=12123i")
   }
 
   test("Boolean fields are serialized correctly") {
@@ -88,6 +90,6 @@ class PointSuite extends CustomTestSuite {
 
   test("Fields are escaped correctly") {
     assert(StringField("ke y", "a v=al\"ue").serialize == "ke\\ y=\"a v=al\\\"ue\"")
-    assert(LongField("key,", 12123l).serialize == "key\\,=12123i")
+    assert(LongField("key,", 12123L).serialize == "key\\,=12123i")
   }
 }
