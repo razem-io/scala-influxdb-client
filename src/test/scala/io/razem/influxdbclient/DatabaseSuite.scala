@@ -1,8 +1,9 @@
 package io.razem.influxdbclient
 
-import io.razem.influxdbclient.Mocks.{ExceptionThrowingHttpClient, ErrorReturningHttpClient}
+import io.razem.influxdbclient.Mocks.{ErrorReturningHttpClient, ExceptionThrowingHttpClient}
 import io.razem.influxdbclient.Parameter.{Consistency, Precision}
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfter}
+import io.razem.influxdbclient.implicits._
+import org.scalatest.BeforeAndAfter
 
 class DatabaseSuite extends CustomTestSuite with BeforeAndAfter {
 
@@ -138,6 +139,24 @@ class DatabaseSuite extends CustomTestSuite with BeforeAndAfter {
     } catch {
       case e: ServerUnavailableException => // expected
     }
+  }
+
+  test("A point can be written using ToPoint type class") {
+    await(database.write(Metric(123, "tag_value")))
+    val result = await(database.query("SELECT * FROM test_measurement WHERE tag_key='tag_value'"))
+    assert(result.series.length == 1)
+  }
+
+  test("A point can be written using ToPoint syntax") {
+    await(database.write(Metric(123, "tag_value").toPoint))
+    val result = await(database.query("SELECT * FROM test_measurement WHERE tag_key='tag_value'"))
+    assert(result.series.length == 1)
+  }
+
+  test("A point can be written using implicit conversion") {
+    await(database.write(Metric(123, "tag_value")))
+    val result = await(database.query("SELECT * FROM test_measurement WHERE tag_key='tag_value'"))
+    assert(result.series.length == 1)
   }
 
 }
